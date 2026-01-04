@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: 'YourAgentPoolName'
+  name: 'agentAlex'
 
 variables:
   pythonVersion: '3.13'
