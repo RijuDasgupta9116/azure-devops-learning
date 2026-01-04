@@ -1,43 +1,51 @@
 trigger:
 - main
 
+# ================= AGENT CONFIG =================
 pool:
-  name: 'agentAlex'
+  name: 'Default'   # or your custom agent pool name
+  demands:
+    - Agent.Name -equals agentAlex
 
 variables:
   pythonVersion: '3.13'
 
+# ================= STAGES =================
 stages:
 
-# ================= DEV STAGE =================
+# ----------- DEV STAGE -----------
 - stage: Dev
-  displayName: "Deploy to Dev"
+  displayName: "DEV Deployment"
   jobs:
   - job: DevJob
-    displayName: "Dev Deployment"
+    displayName: "Run App in DEV"
     steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(pythonVersion)'
+    - script: |
+        echo "Running on Agent: $(Agent.Name)"
+        echo "Operating System: $(Agent.OS)"
+        python --version
+        pip --version
+      displayName: "Verify Agent & Python"
 
     - script: |
-        python -m pip install --upgrade pip
         pip install -r requirements.txt
         python app.py
-      displayName: "Run app in Dev"
+      displayName: "Install Dependencies & Run App (DEV)"
 
     - task: PublishPipelineArtifact@1
       inputs:
         targetPath: $(System.DefaultWorkingDirectory)
         artifact: drop
+      displayName: "Publish Artifact"
 
-# ================= UAT STAGE =================
+# ----------- UAT STAGE -----------
 - stage: UAT
-  displayName: "Deploy to UAT"
+  displayName: "UAT Deployment"
   dependsOn: Dev
   condition: succeeded()
   jobs:
   - deployment: UATDeploy
+    displayName: "Run App in UAT"
     environment: 'UAT'
     strategy:
       runOnce:
@@ -46,22 +54,20 @@ stages:
           - download: current
             artifact: drop
 
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-
           - script: |
+              echo "Running on Agent: $(Agent.Name)"
               pip install -r requirements.txt
               python app.py
-            displayName: "Run app in UAT"
+            displayName: "Install Dependencies & Run App (UAT)"
 
-# ================= PROD STAGE =================
+# ----------- PROD STAGE -----------
 - stage: Prod
-  displayName: "Deploy to Prod"
+  displayName: "PROD Deployment"
   dependsOn: UAT
   condition: succeeded()
   jobs:
   - deployment: ProdDeploy
+    displayName: "Run App in PROD"
     environment: 'Prod'
     strategy:
       runOnce:
@@ -70,11 +76,8 @@ stages:
           - download: current
             artifact: drop
 
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-
           - script: |
+              echo "Running on Agent: $(Agent.Name)"
               pip install -r requirements.txt
               python app.py
-            displayName: "Run app in Prod"
+            displayName: "Install Dependencies & Run App (PROD)"
