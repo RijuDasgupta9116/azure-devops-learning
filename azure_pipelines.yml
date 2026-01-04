@@ -3,7 +3,7 @@ trigger:
 
 # ================= AGENT CONFIG =================
 pool:
-  name: 'Default'   # or your custom agent pool name
+  name: 'ReleasePool'   # or your custom agent pool name
   demands:
     - Agent.Name -equals agentAlex
 
