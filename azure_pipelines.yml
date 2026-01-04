@@ -1,0 +1,80 @@
+trigger:
+- main
+
+pool:
+  name: 'YourAgentPoolName'
+
+variables:
+  pythonVersion: '3.13'
+
+stages:
+
+# ================= DEV STAGE =================
+- stage: Dev
+  displayName: "Deploy to Dev"
+  jobs:
+  - job: DevJob
+    displayName: "Dev Deployment"
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        python app.py
+      displayName: "Run app in Dev"
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: $(System.DefaultWorkingDirectory)
+        artifact: drop
+
+# ================= UAT STAGE =================
+- stage: UAT
+  displayName: "Deploy to UAT"
+  dependsOn: Dev
+  condition: succeeded()
+  jobs:
+  - deployment: UATDeploy
+    environment: 'UAT'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+
+          - script: |
+              pip install -r requirements.txt
+              python app.py
+            displayName: "Run app in UAT"
+
+# ================= PROD STAGE =================
+- stage: Prod
+  displayName: "Deploy to Prod"
+  dependsOn: UAT
+  condition: succeeded()
+  jobs:
+  - deployment: ProdDeploy
+    environment: 'Prod'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+
+          - script: |
+              pip install -r requirements.txt
+              python app.py
+            displayName: "Run app in Prod"
