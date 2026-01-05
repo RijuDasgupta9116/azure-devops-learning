@@ -27,10 +27,10 @@ stages:
         pip --version
       displayName: "Verify Agent & Python"
 
-    # - script: |
-    #     pip install -r requirements.txt
-    #     python app.py
-    #   displayName: "Install Dependencies & Run App (DEV)"
+    - script: |
+        pip install -r requirements.txt
+        python app.py
+      displayName: "Install Dependencies & Run App (DEV)"
 
     - task: PublishPipelineArtifact@1
       inputs:
@@ -54,11 +54,11 @@ stages:
           - download: current
             artifact: drop
 
-          # - script: |
-          #     echo "Running on Agent: $(Agent.Name)"
-          #     pip install -r requirements.txt
-          #     python app.py
-          #   displayName: "Install Dependencies & Run App (UAT)"
+          - script: |
+              echo "Running on Agent: $(Agent.Name)"
+              pip install -r requirements.txt
+              python app.py
+            displayName: "Install Dependencies & Run App (UAT)"
 
 # ----------- PROD STAGE -----------
 - stage: Prod
@@ -76,8 +76,8 @@ stages:
           - download: current
             artifact: drop
 
-          # - script: |
-          #     echo "Running on Agent: $(Agent.Name)"
-          #     pip install -r requirements.txt
-          #     python app.py
-          #   displayName: "Install Dependencies & Run App (PROD)"
+          - script: |
+              echo "Running on Agent: $(Agent.Name)"
+              pip install -r requirements.txt
+              python app.py
+            displayName: "Install Dependencies & Run App (PROD)"
